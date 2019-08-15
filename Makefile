@@ -1,5 +1,8 @@
 DIRS = src modules lualib
 
+DSTDIR = /
+PREFIX = usr/local
+
 all:
 	for i in $(DIRS); do make -C $$i; done
 
@@ -7,21 +10,14 @@ clean:
 	for i in $(DIRS); do cd $$i;make clean;cd ..; done
 
 install: all
-	#mkdir for tsar
-	mkdir -p /usr/local/tsar/modules
-	mkdir -p /etc/tsar
-	mkdir -p /usr/local/man/man8/
-	#copy tsar shared so
-	cp modules/*.so /usr/local/tsar/modules
-	#copy bin file
-	cp src/tsar /usr/bin/tsar
-	#copy config file
-	cp conf/tsar.conf /etc/tsar/tsar.conf
-	cp conf/tsar.logrotate /etc/logrotate.d/tsar
-	cp conf/tsar.cron /etc/cron.d/tsar
-	#copy man file
-	cp conf/tsar.8 /usr/local/man/man8/
-	#install lualib
+	install -d /usr/local/tsar/modules /usr/local/bin \
+		/etc/tsar /etc/logrotate.d/tsar /etc/cron.d/tsar
+	install modules/*.so /usr/local/tsar/modules
+	install src/tsar /usr/local/bin
+	install conf/tsar.conf /etc/tsar/tsar.conf
+	install conf/tsar.logrotate /etc/logrotate.d/tsar
+	install conf/tsar.cron /etc/cron.d/tsar
+	install conf/tsar.8 /usr/local/man/man8/
 	make -C lualib install
 
 uninstall:
@@ -56,6 +52,22 @@ tsarluadevel:
 	cp luadevel/mod_lua_test.conf $(DESTDIR)/usr/local/tsar/luadevel/mod_lua_test.conf
 	cp luadevel/Makefile.test $(DESTDIR)/usr/local/tsar/luadevel/Makefile.test
 	cp luadevel/tsarluadevel $(DESTDIR)/usr/bin/tsarluadevel
+
+DSTDIR = deb
+deb-pkg:
+	install -d ${DSTDIR}/${PREFIX}/tsar/modules ${DSTDIR}/etc/tsar \
+	       	${DSTDIR}/${PREFIX}/bin ${DSTDIR}/${PREFIX}/man/man8 \
+	       	${DSTDIR}/etc/cron.d/tsar ${DSTDIR}/etc/logrotate.d/tsar
+	install modules/*.so ${DSTDIR}/${PREFIX}/tsar/modules
+	install src/tsar ${DSTDIR}/${PREFIX}/bin
+	install conf/tsar.conf ${DSTDIR}/etc/tsar
+	install conf/tsar.logrotate ${DSTDIR}/etc/logrotate.d/tsar
+	install conf/tsar.cron ${DSTDIR}/etc/cron.d/tsar
+	install conf/tsar.8 ${DSTDIR}/${PREFIX}/man/man8
+	dpkg-deb -b deb tsar.deb
+
+rpm-pkg:
+	echo "TODO"
 
 tags:
 	ctags -R
